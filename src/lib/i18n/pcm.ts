@@ -1,0 +1,67 @@
+import { Translations } from "./translations";
+
+export const pcm: Translations = {
+  nav: {
+    home: "Home",
+    familyPortal: "Family Portal",
+    signIn: "Enter",
+    getStarted: "Start Now",
+    dashboard: "My Page",
+    aiCoach: "AI Coach",
+    mood: "How I Dey",
+    screening: "Check-up",
+    bookSession: "Book Time",
+    peers: "My People",
+    sessions: "Sessions",
+    referrals: "Referrals",
+    users: "Users",
+    analytics: "Numbers",
+  },
+  common: {
+    greeting: "How you dey",
+    submit: "Send Am",
+    cancel: "Leave Am",
+    save: "Keep Am",
+    send: "Send",
+    back: "Go Back",
+    next: "Next One",
+    loading: "E dey load...",
+    search: "Find",
+    viewAll: "See all",
+  },
+  landing: {
+    heroTitle: "You No Dey Alone,",
+    heroHighlight: "Mama",
+    heroDescription:
+      "AI wey go help you with your mind health as mama, 24/7. Get kind advice, track how you dey feel, connect with other mamas, and talk to counselor \u2014 for your own language.",
+    ctaPrimary: "Start Free",
+    ctaSecondary: "Family Things",
+    languageNote: "E dey for English, French, and Pidgin",
+    featuresTitle: "Everything Wey You Need to Shine",
+    featuresSubtitle: "Full support wey dem design for African mama journey",
+    howItWorksTitle: "How E Dey Work",
+    ctaFinalTitle: "Every Mama Deserve Support",
+    ctaFinalDescription:
+      "Join plenty mamas for Africa wey dey find strength, connection, and hope through ThrivingMama.",
+    ctaFinalButton: "Start Your Journey Today",
+  },
+  mother: {
+    dashboardGreeting: "How you dey",
+    dashboardSubtext: "How body dey today? Remember say you dey do well well.",
+    chatTitle: "AI Coach",
+    chatSubtext: "Your safe space to yarn, think, and find road. E dey 24/7.",
+    moodTitle: "How I Dey",
+    moodQuestion: "How body dey today?",
+    bookingTitle: "Book Time with Counselor",
+    peersTitle: "My People Dem",
+    epdsTitle: "EPDS Check-up",
+  },
+  footer: {
+    description:
+      "AI wey dey help mamas with mind health for Africa. 24/7 access to care wey get love, community, and things wey go help.",
+    platform: "Platform",
+    crisisSupport: "Emergency Help",
+    available247: "E dey 24/7",
+    copyright: "ThrivingMama. Sharon Asukia Mboe start am. All rights reserved.",
+  },
+};

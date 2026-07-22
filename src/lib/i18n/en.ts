@@ -1,0 +1,67 @@
+import { Translations } from "./translations";
+
+export const en: Translations = {
+  nav: {
+    home: "Home",
+    familyPortal: "Family Portal",
+    signIn: "Sign In",
+    getStarted: "Get Started",
+    dashboard: "Dashboard",
+    aiCoach: "AI Coach",
+    mood: "Mood",
+    screening: "Screening",
+    bookSession: "Book Session",
+    peers: "Peers",
+    sessions: "Sessions",
+    referrals: "Referrals",
+    users: "Users",
+    analytics: "Analytics",
+  },
+  common: {
+    greeting: "Hi",
+    submit: "Submit",
+    cancel: "Cancel",
+    save: "Save",
+    send: "Send",
+    back: "Back",
+    next: "Next",
+    loading: "Loading...",
+    search: "Search",
+    viewAll: "View all",
+  },
+  landing: {
+    heroTitle: "You Are Not Alone,",
+    heroHighlight: "Mama",
+    heroDescription:
+      "AI-powered maternal mental health support available 24/7. Get compassionate guidance, track your well-being, connect with peers, and access professional counselors \u2014 all in your language.",
+    ctaPrimary: "Get Started Free",
+    ctaSecondary: "Family Resources",
+    languageNote: "Available in English, French, and Pidgin English",
+    featuresTitle: "Everything You Need to Thrive",
+    featuresSubtitle: "Comprehensive support designed for the unique journey of African motherhood",
+    howItWorksTitle: "How It Works",
+    ctaFinalTitle: "Every Mother Deserves Support",
+    ctaFinalDescription:
+      "Join hundreds of mothers across Africa who are finding strength, connection, and hope through ThrivingMama.",
+    ctaFinalButton: "Start Your Journey Today",
+  },
+  mother: {
+    dashboardGreeting: "Good morning",
+    dashboardSubtext: "How are you feeling today? Remember, you're doing amazing.",
+    chatTitle: "AI Chat Coach",
+    chatSubtext: "Your safe space to share, reflect, and find guidance. Available 24/7.",
+    moodTitle: "Mood Tracker",
+    moodQuestion: "How are you feeling today?",
+    bookingTitle: "Book a Session",
+    peersTitle: "Peer Connections",
+    epdsTitle: "EPDS Screening",
+  },
+  footer: {
+    description:
+      "AI-powered maternal mental health support for mothers across Africa. 24/7 access to compassionate care, community, and resources.",
+    platform: "Platform",
+    crisisSupport: "Crisis Support",
+    available247: "Available 24/7",
+    copyright: "ThrivingMama. Founded by Sharon Asukia Mboe. All rights reserved.",
+  },
+};

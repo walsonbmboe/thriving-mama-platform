@@ -1,0 +1,67 @@
+import { Translations } from "./translations";
+
+export const fr: Translations = {
+  nav: {
+    home: "Accueil",
+    familyPortal: "Portail Famille",
+    signIn: "Connexion",
+    getStarted: "Commencer",
+    dashboard: "Tableau de bord",
+    aiCoach: "Coach IA",
+    mood: "Humeur",
+    screening: "D\u00e9pistage",
+    bookSession: "R\u00e9server",
+    peers: "Pairs",
+    sessions: "S\u00e9ances",
+    referrals: "Orientations",
+    users: "Utilisateurs",
+    analytics: "Analytique",
+  },
+  common: {
+    greeting: "Bonjour",
+    submit: "Soumettre",
+    cancel: "Annuler",
+    save: "Enregistrer",
+    send: "Envoyer",
+    back: "Retour",
+    next: "Suivant",
+    loading: "Chargement...",
+    search: "Rechercher",
+    viewAll: "Voir tout",
+  },
+  landing: {
+    heroTitle: "Tu n'es pas seule,",
+    heroHighlight: "Mama",
+    heroDescription:
+      "Soutien en sant\u00e9 mentale maternelle par IA, disponible 24h/24. Obtiens des conseils bienveillants, suis ton bien-\u00eatre, connecte-toi avec d'autres m\u00e8res et acc\u00e8de \u00e0 des conseillers professionnels \u2014 dans ta langue.",
+    ctaPrimary: "Commencer Gratuitement",
+    ctaSecondary: "Ressources Familiales",
+    languageNote: "Disponible en anglais, fran\u00e7ais et pidgin anglais",
+    featuresTitle: "Tout ce dont tu as besoin pour t'\u00e9panouir",
+    featuresSubtitle: "Un soutien complet con\u00e7u pour le parcours unique de la maternit\u00e9 africaine",
+    howItWorksTitle: "Comment \u00e7a marche",
+    ctaFinalTitle: "Chaque m\u00e8re m\u00e9rite du soutien",
+    ctaFinalDescription:
+      "Rejoins des centaines de m\u00e8res \u00e0 travers l'Afrique qui trouvent force, connexion et espoir gr\u00e2ce \u00e0 ThrivingMama.",
+    ctaFinalButton: "Commence ton parcours aujourd'hui",
+  },
+  mother: {
+    dashboardGreeting: "Bonjour",
+    dashboardSubtext: "Comment te sens-tu aujourd'hui ? Rappelle-toi, tu fais un travail incroyable.",
+    chatTitle: "Coach IA",
+    chatSubtext: "Ton espace s\u00fbr pour partager, r\u00e9fl\u00e9chir et trouver des conseils. Disponible 24h/24.",
+    moodTitle: "Suivi d'humeur",
+    moodQuestion: "Comment te sens-tu aujourd'hui ?",
+    bookingTitle: "R\u00e9server une s\u00e9ance",
+    peersTitle: "Connexions entre pairs",
+    epdsTitle: "D\u00e9pistage EPDS",
+  },
+  footer: {
+    description:
+      "Soutien en sant\u00e9 mentale maternelle par IA pour les m\u00e8res \u00e0 travers l'Afrique. Acc\u00e8s 24h/24 \u00e0 des soins bienveillants, une communaut\u00e9 et des ressources.",
+    platform: "Plateforme",
+    crisisSupport: "Soutien de crise",
+    available247: "Disponible 24h/24",
+    copyright: "ThrivingMama. Fond\u00e9e par Sharon Asukia Mboe. Tous droits r\u00e9serv\u00e9s.",
+  },
+};
