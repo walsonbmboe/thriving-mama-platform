@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Card from "@/components/ui/Card";
@@ -8,6 +9,7 @@ import { mockFamilyResources } from "@/lib/mock-data/family-resources";
 
 export default function FamilyPortalPage() {
   const [searchQuery, setSearchQuery] = useState("");
+ const { t } = useLanguage();
   const [selectedType, setSelectedType] = useState<"all" | "article" | "guide" | "video">("all");
 
   const filteredResources = mockFamilyResources.filter((resource) => {
@@ -36,11 +38,10 @@ export default function FamilyPortalPage() {
         <section className="bg-gradient-to-br from-earth-50 to-secondary-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="font-heading text-3xl sm:text-4xl font-bold text-warm-gray-900">
-              Family Portal
+              {t.familyPortal.title}
             </h1>
             <p className="mt-4 text-lg text-warm-gray-600 max-w-2xl mx-auto">
-              Resources for partners and family members to better understand
-              and support new mothers through their mental health journey.
+              {t.familyPortal.subtitle}
             </p>
 
             {/* Search */}
@@ -49,7 +50,7 @@ export default function FamilyPortalPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search resources..."
+                placeholder={t.familyPortal.searchPlaceholder}
                 className="w-full px-5 py-3 rounded-xl border border-warm-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-warm-gray-800 placeholder:text-warm-gray-400 shadow-sm"
                 aria-label="Search family portal resources"
               />
@@ -72,7 +73,7 @@ export default function FamilyPortalPage() {
                       : "bg-warm-gray-100 text-warm-gray-600 hover:bg-warm-gray-200"
                   }`}
                 >
-                  {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1) + "s"}
+                  {type === "all" ? t.familyPortal.all : type === "article" ? t.familyPortal.articles : type === "guide" ? t.familyPortal.guides : t.familyPortal.videos}
                 </button>
               ))}
             </div>
@@ -81,7 +82,7 @@ export default function FamilyPortalPage() {
             {filteredResources.length === 0 ? (
               <div className="text-center py-12">
                 <span className="text-4xl">🔍</span>
-                <p className="mt-4 text-warm-gray-600">No resources found matching your search.</p>
+                <p className="mt-4 text-warm-gray-600">{t.familyPortal.noResults}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

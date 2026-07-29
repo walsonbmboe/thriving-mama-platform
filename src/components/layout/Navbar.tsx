@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { UserRole } from "@/lib/mock-data/users";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
@@ -20,6 +21,7 @@ export default function Navbar({ userRole, userName }: NavbarProps) {
       return [
         { href: "/", label: t.nav.home },
         { href: "/family-portal", label: t.nav.familyPortal },
+ { href: "/about", label: t.nav.about },
         { href: "/login", label: t.nav.signIn },
         { href: "/register", label: t.nav.getStarted },
       ];
@@ -59,9 +61,7 @@ export default function Navbar({ userRole, userName }: NavbarProps) {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link href={userRole ? `/${userRole === "mother" ? "mother" : userRole}` : "/"} className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary-400 to-secondary-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">TM</span>
-            </div>
+            <Image src="/logo.jpeg" alt="ThrivingMama Logo" width={36} height={36} className="w-9 h-9 rounded-full object-cover" />
             <span className="font-heading text-xl font-bold text-warm-gray-800">
               Thriving<span className="text-primary-500">Mama</span>
             </span>

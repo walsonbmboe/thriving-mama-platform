@@ -16,6 +16,7 @@ export interface Translations {
     referrals: string;
     users: string;
     analytics: string;
+ about: string;
   };
   common: {
     greeting: string;
@@ -33,6 +34,12 @@ export interface Translations {
     heroTitle: string;
     heroHighlight: string;
     heroDescription: string;
+ heroBody1: string;
+ heroBody2: string;
+ heroBody3: string;
+ heroBody4: string;
+ heroClosing: string;
+ heroCta: string;
     ctaPrimary: string;
     ctaSecondary: string;
     languageNote: string;
@@ -54,7 +61,82 @@ export interface Translations {
     peersTitle: string;
     epdsTitle: string;
   };
-  footer: {
+  familyPortal: {
+ title: string;
+ subtitle: string;
+ searchPlaceholder: string;
+ all: string;
+ articles: string;
+ guides: string;
+ videos: string;
+ noResults: string;
+ };
+ features: {
+ aiChat: string;
+ aiChatDesc: string;
+ moodTracking: string;
+ moodTrackingDesc: string;
+ epds: string;
+ epdsDesc: string;
+ crisis: string;
+ crisisDesc: string;
+ peers: string;
+ peersDesc: string;
+ booking: string;
+ bookingDesc: string;
+ step1: string;
+ step1Desc: string;
+ step2: string;
+ step2Desc: string;
+ step3: string;
+ step3Desc: string;
+ };
+ auth: {
+ welcomeBack: string;
+ signInSubtext: string;
+ email: string;
+ password: string;
+ confirmPassword: string;
+ signIn: string;
+ noAccount: string;
+ createHere: string;
+ joinTitle: string;
+ joinSubtext: string;
+ fullName: string;
+ iAmA: string;
+ mother: string;
+ counselor: string;
+ preferredLanguage: string;
+ createAccount: string;
+ haveAccount: string;
+ signInLink: string;
+ consent: string;
+ };
+ about: {
+ title: string;
+ subtitle: string;
+ founderTitle: string;
+ founderName: string;
+ founderRole: string;
+ founderBio: string;
+ missionTitle: string;
+ missionText: string;
+ visionTitle: string;
+ visionText: string;
+ valuesTitle: string;
+ valueCommunity: string;
+ valueCommunityDesc: string;
+ valueCompassion: string;
+ valueCompassionDesc: string;
+ valueCulture: string;
+ valueCultureDesc: string;
+ valueAccessibility: string;
+ valueAccessibilityDesc: string;
+ ctaTitle: string;
+ ctaText: string;
+ ctaButton: string;
+ };
+ footer: {
     description: string;
     platform: string;
     crisisSupport: string;
