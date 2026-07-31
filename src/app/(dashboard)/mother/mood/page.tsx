@@ -8,6 +8,7 @@ import { mockMoodHistory, moodLabels } from "@/lib/mock-data/mood";
 export default function MoodPage() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [note, setNote] = useState("");
+ const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {
