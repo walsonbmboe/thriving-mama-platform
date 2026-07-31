@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Role and User for Thriving Mama Netlify Functions
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues:
+      - production
+      - staging
+      - development
+    Description: Deployment environment
+
+Resources:
+  ThrivingMamaNetlifyFunctionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: thriving-mama-netlify-functions-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  DynamoDBAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: thriving-mama-dynamodb-access
+      Roles:
+        - !Ref ThrivingMamaNetlifyFunctionsRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+            Resource:
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/thriving-mama-*
+              - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/thriving-mama-*/index/*
+
+  CognitoAdminPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: thriving-mama-cognito-admin
+      Roles:
+        - !Ref ThrivingMamaNetlifyFunctionsRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminAddUserToGroup
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUpdateUserAttributes
+              - cognito-idp:AdminDisableUser
+              - cognito-idp:AdminEnableUser
+              - cognito-idp:ListUsers
+            Resource:
+              - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
+
+  ThrivingMamaNetlifyUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: thriving-mama-netlify-user
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  ThrivingMamaNetlifyUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref ThrivingMamaNetlifyUser
+
+Outputs:
+  RoleArn:
+    Description: ARN of the Netlify Functions IAM Role
+    Value: !GetAtt ThrivingMamaNetlifyFunctionsRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-RoleArn
+
+  AccessKeyId:
+    Description: Access Key ID for the Netlify IAM User
+    Value: !Ref ThrivingMamaNetlifyUserAccessKey
+
+  SecretAccessKey:
+    Description: Secret Access Key for the Netlify IAM User
+    Value: !GetAtt ThrivingMamaNetlifyUserAccessKey.SecretAccessKey
