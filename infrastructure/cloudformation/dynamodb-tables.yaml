@@ -1,0 +1,356 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ThrivingMama Platform - DynamoDB Tables
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+
+Resources:
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  ChatMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-chat-messages
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: userId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  MoodCheckinsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-mood-checkins
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  EpdsResultsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-epds-results
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  CrisisEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-crisis-events
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: userId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  BookingSlotsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-booking-slots
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: counselorId
+          AttributeType: S
+        - AttributeName: slotTime
+          AttributeType: S
+        - AttributeName: motherId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: counselorId
+          KeyType: HASH
+        - AttributeName: slotTime
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: motherId-index
+          KeySchema:
+            - AttributeName: motherId
+              KeyType: HASH
+            - AttributeName: slotTime
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  PeerConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-peer-connections
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: userId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  PeerMessagesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-peer-messages
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  NotificationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-notifications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: createdAt
+          KeyType: RANGE
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  AnalyticsEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-analytics-events
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: userId-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  ConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-config
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: configKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: configKey
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  AccessLogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-access-logs
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: logId
+          AttributeType: S
+        - AttributeName: targetUserId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: logId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: targetUserId-index
+          KeySchema:
+            - AttributeName: targetUserId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+  FamilyResourcesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: thriving-mama-family-resources
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: resourceId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: resourceId
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: thriving-mama
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  UsersTableArn:
+    Value: !GetAtt UsersTable.Arn
+  ChatMessagesTableArn:
+    Value: !GetAtt ChatMessagesTable.Arn
+  MoodCheckinsTableArn:
+    Value: !GetAtt MoodCheckinsTable.Arn
+  EpdsResultsTableArn:
+    Value: !GetAtt EpdsResultsTable.Arn
+  CrisisEventsTableArn:
+    Value: !GetAtt CrisisEventsTable.Arn
+  BookingSlotsTableArn:
+    Value: !GetAtt BookingSlotsTable.Arn
+  PeerConnectionsTableArn:
+    Value: !GetAtt PeerConnectionsTable.Arn
+  PeerMessagesTableArn:
+    Value: !GetAtt PeerMessagesTable.Arn
+  NotificationsTableArn:
+    Value: !GetAtt NotificationsTable.Arn
+  AnalyticsEventsTableArn:
+    Value: !GetAtt AnalyticsEventsTable.Arn
+  ConfigTableArn:
+    Value: !GetAtt ConfigTable.Arn
+  AccessLogsTableArn:
+    Value: !GetAtt AccessLogsTable.Arn
+  FamilyResourcesTableArn:
+    Value: !GetAtt FamilyResourcesTable.Arn

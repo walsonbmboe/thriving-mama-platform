@@ -1,20 +1,26 @@
+"use client";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 export default function CounselorLayout({
-  children,
+ children,
 }: {
-  children: React.ReactNode;
+ children: React.ReactNode;
 }) {
-  return (
-    <>
-      <Navbar userRole="counselor" userName="Dr. Ngozi Adeyemi" />
-      <main className="flex-1 bg-warm-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {children}
-        </div>
-      </main>
-      <Footer />
-    </>
-  );
+ const { user } = useAuth();
+
+ return (
+ <ProtectedRoute allowedRoles={["counselor"]}>
+ <Navbar userRole="counselor" userName={user?.name || ""} />
+ <main className="flex-1 bg-warm-gray-50">
+ <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+ {children}
+ </div>
+ </main>
+ <Footer />
+ </ProtectedRoute>
+ );
 }
