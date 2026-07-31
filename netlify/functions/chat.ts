@@ -12,17 +12,17 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 const awsCredentials = {
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  accessKeyId: process.env.TM_AWS_ACCESS_KEY_ID || "",
+  secretAccessKey: process.env.TM_AWS_SECRET_ACCESS_KEY || "",
 };
 
 const dynamoClient = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.TM_AWS_REGION || "us-east-1",
   credentials: awsCredentials,
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const bedrockClient = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.TM_AWS_REGION || "us-east-1",
   credentials: awsCredentials,
 });
 
