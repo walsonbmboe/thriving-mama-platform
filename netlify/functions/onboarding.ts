@@ -7,7 +7,15 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
-const client = new DynamoDBClient({ region: "us-east-1" });
+const awsCredentials = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+};
+
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: awsCredentials,
+});
 const docClient = DynamoDBDocumentClient.from(client);
 
 const USERS_TABLE = "thriving-mama-users";

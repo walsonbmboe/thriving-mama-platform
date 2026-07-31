@@ -35,6 +35,8 @@ Resources:
       PolicyName: thriving-mama-dynamodb-access
       Roles:
         - !Ref ThrivingMamaNetlifyFunctionsRole
+      Users:
+        - !Ref ThrivingMamaNetlifyUser
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -58,6 +60,8 @@ Resources:
       PolicyName: thriving-mama-cognito-admin
       Roles:
         - !Ref ThrivingMamaNetlifyFunctionsRole
+      Users:
+        - !Ref ThrivingMamaNetlifyUser
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -71,6 +75,24 @@ Resources:
               - cognito-idp:ListUsers
             Resource:
               - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
+
+  BedrockAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: thriving-mama-bedrock-access
+      Roles:
+        - !Ref ThrivingMamaNetlifyFunctionsRole
+      Users:
+        - !Ref ThrivingMamaNetlifyUser
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+              - bedrock:Converse
+            Resource: "*"
 
   ThrivingMamaNetlifyUser:
     Type: AWS::IAM::User

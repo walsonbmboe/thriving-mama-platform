@@ -11,9 +11,20 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import { v4 as uuidv4 } from "uuid";
 
-const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
+const awsCredentials = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+};
+
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: awsCredentials,
+});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
-const bedrockClient = new BedrockRuntimeClient({ region: "us-east-1" });
+const bedrockClient = new BedrockRuntimeClient({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: awsCredentials,
+});
 
 const CHAT_MESSAGES_TABLE = "thriving-mama-chat-messages";
 const CRISIS_EVENTS_TABLE = "thriving-mama-crisis-events";
@@ -62,7 +73,6 @@ const CRISIS_KEYWORDS = [
   "harm my baby",
   "hurt my baby",
   "shake my baby",
-  "can't go on",
   "no reason to live",
 ];
 
