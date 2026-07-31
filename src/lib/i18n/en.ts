@@ -143,6 +143,6 @@ export const en: Translations = {
     platform: "Platform",
     crisisSupport: "Crisis Support",
     available247: "Available 24/7",
-    copyright: "ThrivingMama. Founded by Sharon Asukia Mboe. All rights reserved.",
+    copyright: "ThrivingMama. Founded by Sharon Mboe Teburg. All rights reserved.",
   },
 };

@@ -144,6 +144,6 @@ export const pcm: Translations = {
     platform: "Platform",
     crisisSupport: "Emergency Help",
     available247: "E dey 24/7",
-    copyright: "ThrivingMama. Sharon Asukia Mboe start am. All rights reserved.",
+    copyright: "ThrivingMama. Sharon Mboe Teburg start am. All rights reserved.",
   },
 };

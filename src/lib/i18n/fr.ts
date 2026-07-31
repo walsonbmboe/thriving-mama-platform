@@ -144,6 +144,6 @@ export const fr: Translations = {
     platform: "Plateforme",
     crisisSupport: "Soutien de crise",
     available247: "Disponible 24h/24",
-    copyright: "ThrivingMama. Fond\u00e9e par Sharon Asukia Mboe. Tous droits r\u00e9serv\u00e9s.",
+    copyright: "ThrivingMama. Fond\u00e9e par Sharon Mboe Teburg. Tous droits r\u00e9serv\u00e9s.",
   },
 };
