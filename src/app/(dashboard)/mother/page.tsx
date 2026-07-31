@@ -3,15 +3,17 @@
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 export default function MotherDashboard() {
  const { t } = useLanguage();
+ const { user } = useAuth();
 
  return (
  <div>
  <div className="mb-8">
  <h1 className="font-heading text-3xl font-bold text-warm-gray-900">
- {t.mother.dashboardGreeting}, Amara
+ {t.mother.dashboardGreeting}, {user?.name || ""}
  </h1>
  <p className="mt-1 text-warm-gray-600">{t.mother.dashboardSubtext}</p>
  </div>
