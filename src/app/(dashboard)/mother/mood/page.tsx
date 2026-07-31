@@ -5,16 +5,53 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { mockMoodHistory, moodLabels } from "@/lib/mock-data/mood";
 
+const quickTags = [
+  "\u{1F634} Sleep issues",
+  "\u{1F476} Baby stress",
+  "\u{1F491} Partner tension",
+  "\u{1FAC2} Lonely today",
+  "\u{1F630} Anxious",
+  "\u{1F64F} Grateful",
+];
+
 export default function MoodPage() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [note, setNote] = useState("");
- const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {
     if (selectedRating === null) return;
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) {
+        const updated = prev.filter((t) => t !== tag);
+        setNote(updated.join(", "));
+        return updated;
+      } else {
+        const updated = [...prev, tag];
+        setNote(updated.join(", "));
+        return updated;
+      }
+    });
+  };
+
+  const getNoteLabel = () => {
+    if (selectedRating === null) return "Add a note (optional)";
+    if (selectedRating <= 2) return "Want to share what\u2019s weighing on you?";
+    if (selectedRating === 3) return "Anything on your mind today?";
+    if (selectedRating >= 4) return "What\u2019s making today a good day?";
+    return "Add a note (optional)";
+  };
+
+  const getPlaceholder = () => {
+    if (selectedRating !== null && selectedRating <= 2) return "I\u2019m feeling this way because...";
+    if (selectedRating !== null && selectedRating >= 4) return "Today I\u2019m thankful for...";
+    return "What\u2019s on your mind?";
   };
 
   const maxRating = 5;
@@ -66,15 +103,33 @@ export default function MoodPage() {
 
               <div className="mb-4">
                 <label htmlFor="mood-note" className="block text-sm font-medium text-warm-gray-700 mb-1">
-                  Add a note (optional)
+                  {getNoteLabel()}
                 </label>
+
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {quickTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => handleTagToggle(tag)}
+                      className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
+                        selectedTags.includes(tag)
+                          ? "border-primary-500 bg-primary-50 text-primary-700 font-medium"
+                          : "border-warm-gray-200 text-warm-gray-600 hover:border-warm-gray-300 hover:bg-warm-gray-50"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
                 <textarea
                   id="mood-note"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-warm-gray-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-warm-gray-800 placeholder:text-warm-gray-400 resize-none"
-                  placeholder="What's on your mind?"
+                  placeholder={getPlaceholder()}
                 />
               </div>
 
