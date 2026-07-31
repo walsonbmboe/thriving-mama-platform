@@ -5,14 +5,41 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { mockMoodHistory, moodLabels } from "@/lib/mock-data/mood";
 
-const quickTags = [
-  "\u{1F634} Sleep issues",
-  "\u{1F476} Baby stress",
-  "\u{1F491} Partner tension",
-  "\u{1FAC2} Lonely today",
-  "\u{1F630} Anxious",
-  "\u{1F64F} Grateful",
-];
+const getQuickTags = (rating: number | null): string[] => {
+  if (rating === null) return [];
+  if (rating <= 2) {
+    return [
+      "😴 Sleep deprivation",
+      "😰 Overwhelmed",
+      "😢 Crying a lot",
+      "🫂 Feeling alone",
+      "😤 Irritable",
+      "🧠 Can't think straight",
+      "💑 Partner issues",
+      "🏠 Home stress",
+    ];
+  }
+  if (rating === 3) {
+    return [
+      "😴 Tired but okay",
+      "🫂 Could use company",
+      "💪 Managing",
+      "🌤️ Some good moments",
+      "😐 Just getting through",
+      "💑 Relationship stuff",
+    ];
+  }
+  return [
+    "😊 Baby smiled at me",
+    "🙏 Feeling grateful",
+    "😴 Good sleep last night",
+    "💪 Feeling strong",
+    "👭 Connected with someone",
+    "☀️ Got outside today",
+    "🎉 Small win today",
+    "💕 Feeling loved",
+  ];
+};
 
 export default function MoodPage() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
@@ -87,7 +114,7 @@ export default function MoodPage() {
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
-                    onClick={() => setSelectedRating(rating)}
+                    onClick={() => { setSelectedRating(rating); setSelectedTags([]); setNote(""); }}
                     className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${
                       selectedRating === rating
                         ? "border-primary-500 bg-primary-50 scale-105"
@@ -107,7 +134,7 @@ export default function MoodPage() {
                 </label>
 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {quickTags.map((tag) => (
+                  {getQuickTags(selectedRating).map((tag) => (
                     <button
                       key={tag}
                       type="button"
