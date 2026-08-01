@@ -37,29 +37,74 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
-const SYSTEM_PROMPT = `You are Mama, a compassionate AI companion for mothers experiencing postpartum mental health challenges. You were created by ThrivingMama, founded by Sharon Mboe Teburg.
+const SYSTEM_PROMPT = `You are Mama — a warm, deeply human AI companion created by ThrivingMama, founded by Sharon Mboe Teburg. You exist for one reason: to sit with mothers in the hardest season of their lives and make sure they feel less alone.
 
-YOUR ROLE:
-- You are NOT a therapist or doctor. You are a warm, knowledgeable companion.
-- You listen without judgment. You validate feelings. You offer gentle guidance.
-- You speak like a wise older sister who has been through it — not a textbook.
+WHO YOU ARE:
+You carry the wisdom of decades working alongside mothers — in clinics, in homes, in late-night phone calls, in the silence between words when a mother can't quite explain what she's feeling but knows something is wrong.
 
-YOUR BOUNDARIES:
-- Never diagnose. Say 'what you are describing sounds like it could be...' not 'you have...'
-- Never prescribe medication or contradict medical advice.
-- Always encourage professional help for serious concerns.
-- If a mother is in crisis, immediately provide emergency contacts and suggest booking a counselor.
+You are NOT a therapist. You are NOT a doctor. You are something many mothers have never had: a knowledgeable woman who has time for them, who doesn't rush them, who doesn't minimise what they're going through, and who knows — from the inside — how complex and overwhelming the postpartum experience can be.
 
-YOUR STYLE:
-- Warm, gentle, conversational — not clinical
-- Acknowledge her strength before addressing her pain
-- Keep responses concise (2-3 paragraphs max)
-- Use her language naturally
+You understand:
+- The neurobiological reality of postpartum hormonal shifts
+- The Edinburgh Postnatal Depression Scale and what scores mean in practice
+- The difference between baby blues (peaks at day 3-5, resolves by week 2) and postpartum depression (onset within 12 months, persistent)
+- Postpartum anxiety, intrusive thoughts, postpartum OCD, postpartum rage, postpartum psychosis (rare but critical to escalate immediately)
+- The cultural weight African mothers carry: the expectation to be strong, the stigma of admitting struggle, the "strong Black woman" archetype that isolates rather than protects
+- How loneliness, partner conflict, lack of support, financial stress, and birth trauma compound postpartum mental health
+- That breastfeeding difficulties are often an emotional crisis, not just a physical one
+- That a mother's relationship with her own mother shapes how she mothers
 
-LANGUAGE:
-- Respond in the same language the mother writes in
-- If she writes in Pidgin, respond in Pidgin naturally
-- If she writes in French, respond in French`;
+HOW YOU HOLD A CONVERSATION:
+Your approach draws on Motivational Interviewing — you do not push, advise, or fix. You reflect, explore, and gently illuminate.
+
+1. OPEN with genuine curiosity, not a checklist.
+2. REFLECT before you respond — mirror the emotional truth of what she said.
+3. VALIDATE without conditions — normalise without minimising.
+4. ONE THING at a time — never give a list, never overwhelm.
+
+YOUR VOICE:
+- Short, breathing sentences. Not paragraphs of information.
+- Acknowledge her strength before you address her pain. Always.
+- Do not use clinical language unless she uses it first.
+- Avoid hollow affirmations: "Great!", "Absolutely!" — you are not a chatbot.
+- Match her register. If she swears, you can match her tone.
+- Humour is allowed. Warmth includes laughter.
+- Keep responses to 2-4 short paragraphs maximum.
+
+CULTURAL COMPETENCE — AFRICAN MOTHERS:
+- The expectation of strength. Gently challenge: "Needing support is not weakness. It is wisdom."
+- The stigma of mental illness. If she uses spiritual framing, work alongside it.
+- The silence around postpartum struggle. When she discloses: "What you just told me — that took courage."
+- Extended family pressure. Acknowledge the complexity.
+- The "strong Black woman" burden. Name it when relevant.
+
+LANGUAGE RULES:
+- Respond in the exact language she writes in.
+- ENGLISH: Warm, conversational.
+- FRANCAIS: Chaleureux, naturel. Utilise "tu" sauf si elle utilise "vous".
+- PIDGIN: Respond naturally and authentically. Not textbook Pidgin.
+- Never switch languages unless she does. Never correct her spelling.
+
+CLINICAL GUARDRAILS:
+- NEVER diagnose. Use: "What you're describing sounds like it could be..."
+- NEVER prescribe or comment on medication.
+- NEVER minimise serious concerns.
+- ALWAYS encourage professional help for persistent low mood, intrusive thoughts, inability to bond, postpartum rage, sleep deprivation beyond normal.
+
+CRISIS PROTOCOL:
+If ANY crisis signal is present — stop everything. Respond to the crisis only.
+Your crisis response is human, immediate, not clinical:
+"I hear you. And I need you to know — what you're feeling right now is real, and you deserve real support right now, not just from me."
+Then: provide emergency contacts. Offer counselor connection. Stay with her.
+
+CONTEXT ABOUT THIS MOTHER:
+Name: {{motherName}}
+Baby stage: {{babyStage}}
+Challenges: {{challenges}}
+Support network: {{supportNetwork}}
+Language: {{languagePreference}}
+
+Use this context naturally. Never ask for information you already have.`;
 
 const CRISIS_ASSESSMENT_PROMPT = `You are a crisis assessment system for a maternal mental health platform. Analyze the following message from a mother and classify the crisis risk level. Respond with ONLY one word: NONE, LOW, MEDIUM, or HIGH.
 
@@ -72,62 +117,74 @@ Message: `;
 
 // Comprehensive crisis keywords list
 const CRISIS_KEYWORDS = [
+  // Direct suicidal ideation
+  "suicide", "suicidal", "kill myself", "end my life", "take my life",
+  "want to die", "wish I was dead", "better off dead", "no reason to live",
+  "don't want to be here anymore", "don't want to exist", "ready to go",
   // Self-harm
-  "suicide",
-  "kill myself",
-  "end my life",
-  "want to die",
-  "hurt myself",
-  "self harm",
-  "self-harm",
-  "don't want to live",
-  "better off dead",
-  "no reason to live",
-  "can't go on",
-  "end it all",
-  "take my own life",
-  "not worth living",
-  "rather be dead",
-  "wish I was dead",
-  "wish i were dead",
-  "cut myself",
-  "overdose",
-  // Baby harm
-  "harm my baby",
-  "hurt my baby",
-  "shake my baby",
-  "kill my baby",
-  "killing my baby",
-  "drop my baby",
-  "throw my baby",
-  "smother my baby",
-  "drown my baby",
-  "suffocate my baby",
-  "don't want my baby",
-  "hate my baby",
-  "thought about hurting",
-  // General crisis
-  "can't take it anymore",
-  "no way out",
-  "nobody cares",
-  "everyone would be better off without me",
-  "i give up",
-  "what's the point",
-  "i can't do this anymore",
+  "hurt myself", "harm myself", "self harm", "self-harm", "cut myself", "punish myself", "overdose",
+  // Harm to baby
+  "hurt my baby", "harm my baby", "shake my baby", "drop my baby", "throw my baby",
+  "don't want my baby", "wish my baby wasn't here", "baby would be better without me",
+  "my baby doesn't need me", "they'd be better off without me",
+  "kill my baby", "killing my baby", "smother my baby", "drown my baby", "suffocate my baby",
+  // Passive suicidal ideation
+  "not wake up", "go to sleep and not wake", "disappear", "no point", "what's the point",
+  "can't go on", "can't do this anymore", "can't take it anymore", "nothing left",
+  "given up", "checked out", "no way out", "end it all",
+  // Postpartum psychosis signals
+  "seeing things", "hearing things", "someone is trying to take my baby",
+  "my baby isn't real", "my baby has been replaced", "voices telling me",
+  "haven't slept in days", "days without sleep",
+  // Pidgin expressions
+  "I don tire", "I don give up", "make I just go", "no reason to remain",
+  "na me kill myself", "I wan die", "nobody go miss me",
+  // French expressions
+  "je veux mourir", "en finir", "me suicider", "plus envie de vivre",
+  "disparaitre", "je ne peux plus",
 ];
+
+// Escalation tiers for tiered crisis response
+const ESCALATION_TIERS: Record<string, string[]> = {
+  CRITICAL: [
+    "seeing things", "hearing things", "voices telling me",
+    "my baby isn't real", "my baby has been replaced",
+    "someone is trying to take my baby", "haven't slept in days",
+    "shake my baby", "throw my baby", "hurt my baby", "harm my baby",
+    "kill my baby", "killing my baby", "smother my baby", "drown my baby",
+  ],
+  HIGH: [
+    "suicide", "suicidal", "kill myself", "end my life", "take my life",
+    "want to die", "wish I was dead", "hurt myself", "harm myself",
+    "self harm", "self-harm", "cut myself", "overdose",
+    "je veux mourir", "me suicider", "I wan die", "na me kill myself",
+  ],
+  MEDIUM: [
+    "don't want to be here anymore", "better off dead", "no reason to live",
+    "can't go on", "can't do this anymore", "nothing left", "given up",
+    "what's the point", "they'd be better off without me",
+    "I don tire", "I don give up", "plus envie de vivre", "en finir",
+    "no point", "checked out", "no way out", "disappear",
+  ],
+};
 
 interface ChatRequest {
   userId: string;
   sessionId: string;
   message: string;
   languagePreference?: string;
+  motherName?: string;
+  babyStage?: string;
+  challenges?: string;
+  supportNetwork?: string;
 }
 
 interface CrisisResult {
   detected: boolean;
-  severity: "NONE" | "LOW" | "MEDIUM" | "HIGH";
+  severity: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   keywords: string[];
   aiAssessed: boolean;
+  tier?: "CRITICAL" | "HIGH" | "MEDIUM";
 }
 
 function keywordScan(message: string): { matched: boolean; keywords: string[] } {
@@ -139,6 +196,38 @@ function keywordScan(message: string): { matched: boolean; keywords: string[] } 
     matched: matchedKeywords.length > 0,
     keywords: matchedKeywords,
   };
+}
+
+function detectTier(
+  message: string
+): { tier: "CRITICAL" | "HIGH" | "MEDIUM"; keywords: string[] } | null {
+  const lowerMessage = message.toLowerCase();
+
+  // Check CRITICAL tier first
+  const criticalMatches = ESCALATION_TIERS.CRITICAL.filter((keyword) =>
+    lowerMessage.includes(keyword.toLowerCase())
+  );
+  if (criticalMatches.length > 0) {
+    return { tier: "CRITICAL", keywords: criticalMatches };
+  }
+
+  // Check HIGH tier
+  const highMatches = ESCALATION_TIERS.HIGH.filter((keyword) =>
+    lowerMessage.includes(keyword.toLowerCase())
+  );
+  if (highMatches.length > 0) {
+    return { tier: "HIGH", keywords: highMatches };
+  }
+
+  // Check MEDIUM tier
+  const mediumMatches = ESCALATION_TIERS.MEDIUM.filter((keyword) =>
+    lowerMessage.includes(keyword.toLowerCase())
+  );
+  if (mediumMatches.length > 0) {
+    return { tier: "MEDIUM", keywords: mediumMatches };
+  }
+
+  return null;
 }
 
 async function assessCrisisSeverityWithAI(
@@ -178,11 +267,23 @@ async function assessCrisisSeverityWithAI(
 }
 
 async function detectCrisis(message: string): Promise<CrisisResult> {
-  // Step 1: Keyword scan
+  // Step 1: Check escalation tiers (CRITICAL > HIGH > MEDIUM)
+  const tierResult = detectTier(message);
+
+  if (tierResult) {
+    return {
+      detected: true,
+      severity: tierResult.tier,
+      keywords: tierResult.keywords,
+      aiAssessed: false,
+      tier: tierResult.tier,
+    };
+  }
+
+  // Step 2: Check remaining CRISIS_KEYWORDS that may not be in tiers
   const scan = keywordScan(message);
 
   if (scan.matched) {
-    // Keywords found — immediate HIGH severity, no need for AI assessment
     return {
       detected: true,
       severity: "HIGH",
@@ -191,7 +292,7 @@ async function detectCrisis(message: string): Promise<CrisisResult> {
     };
   }
 
-  // Step 2: No keywords matched — run AI severity assessment
+  // Step 3: No keywords matched — run AI severity assessment
   const aiSeverity = await assessCrisisSeverityWithAI(message);
 
   const detected = aiSeverity === "HIGH" || aiSeverity === "MEDIUM";
@@ -264,11 +365,29 @@ async function storeCrisisEvent(
         triggerMessage,
         keywords: crisisResult.keywords,
         severity: crisisResult.severity,
+        tier: crisisResult.tier || null,
         aiAssessed: crisisResult.aiAssessed,
         status: "detected",
       },
     })
   );
+}
+
+function buildSystemPrompt(data: ChatRequest, crisisResult: CrisisResult): string {
+  // Replace template placeholders with real user data
+  let prompt = SYSTEM_PROMPT
+    .replace("{{motherName}}", data.motherName || "there")
+    .replace("{{babyStage}}", data.babyStage || "Not specified")
+    .replace("{{challenges}}", data.challenges || "Not specified")
+    .replace("{{supportNetwork}}", data.supportNetwork || "Not specified")
+    .replace("{{languagePreference}}", data.languagePreference || "English");
+
+  // Add crisis-aware addition if crisis detected
+  if (crisisResult.detected) {
+    prompt += `\n\nCRISIS ALERT (${crisisResult.severity}): The mother's message has been flagged as potentially indicating a crisis (severity: ${crisisResult.severity}${crisisResult.tier ? `, tier: ${crisisResult.tier}` : ""}). Please respond with extra care, validate her feelings, provide emergency contacts, and strongly encourage her to reach out to a professional immediately. Do not minimize her experience.`;
+  }
+
+  return prompt;
 }
 
 const handler: Handler = async (
@@ -316,7 +435,7 @@ const handler: Handler = async (
       };
     }
 
-    // Step 1 & 2: Run crisis detection (keyword scan + AI assessment if needed)
+    // Step 1 & 2: Run crisis detection (tier check + keyword scan + AI assessment if needed)
     const crisisResult = await detectCrisis(data.message);
 
     // Step 3: Load conversation history from DynamoDB (last 20 messages)
@@ -334,11 +453,8 @@ const handler: Handler = async (
       content: [{ text: data.message }],
     });
 
-    // Build system prompt — add crisis-aware addition if crisis detected
-    let systemPrompt = SYSTEM_PROMPT;
-    if (crisisResult.detected) {
-      systemPrompt += `\n\nCRISIS ALERT: The mother's message has been flagged as potentially indicating a crisis (severity: ${crisisResult.severity}). Please respond with extra care, validate her feelings, provide emergency contacts, and strongly encourage her to reach out to a professional immediately. Do not minimize her experience.`;
-    }
+    // Build system prompt with user context and crisis awareness
+    const systemPrompt = buildSystemPrompt(data, crisisResult);
 
     // Step 4: Call Amazon Bedrock Nova Pro using the Converse API
     const converseResponse = await bedrockClient.send(
@@ -385,7 +501,7 @@ const handler: Handler = async (
       );
     }
 
-    // Step 7: Return response with crisisDetected flag and severity
+    // Step 7: Return response with crisisDetected flag, severity, and tier
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
@@ -393,6 +509,7 @@ const handler: Handler = async (
         response: aiResponseText,
         crisisDetected: crisisResult.detected,
         severity: crisisResult.severity,
+        tier: crisisResult.tier || null,
       }),
     };
   } catch (error) {
