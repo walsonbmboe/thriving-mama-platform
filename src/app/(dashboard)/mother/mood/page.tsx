@@ -30,35 +30,35 @@ const getQuickTags = (rating: number | null): string[] => {
   if (rating === null) return [];
   if (rating <= 2) {
     return [
-      "\ud83d\ude34 Sleep deprivation",
-      "\ud83d\ude30 Overwhelmed",
-      "\ud83d\ude22 Crying a lot",
-      "\ud83e\udec2 Feeling alone",
-      "\ud83d\ude24 Irritable",
-      "\ud83e\udde0 Can't think straight",
-      "\ud83d\udc91 Partner issues",
-      "\ud83c\udfe0 Home stress",
+      "😴 Sleep deprivation",
+      "😰 Overwhelmed",
+      "😢 Crying a lot",
+      "🫂 Feeling alone",
+      "😤 Irritable",
+      "🧠 Can't think straight",
+      "💑 Partner issues",
+      "🏠 Home stress",
     ];
   }
   if (rating === 3) {
     return [
-      "\ud83d\ude34 Tired but okay",
-      "\ud83e\udec2 Could use company",
-      "\ud83d\udcaa Managing",
-      "\ud83c\udf24\ufe0f Some good moments",
-      "\ud83d\ude10 Just getting through",
-      "\ud83d\udc91 Relationship stuff",
+      "😴 Tired but okay",
+      "🫂 Could use company",
+      "💪 Managing",
+      "🌤️ Some good moments",
+      "😐 Just getting through",
+      "💑 Relationship stuff",
     ];
   }
   return [
-    "\ud83d\ude0a Baby smiled at me",
-    "\ud83d\ude4f Feeling grateful",
-    "\ud83d\ude34 Good sleep last night",
-    "\ud83d\udcaa Feeling strong",
-    "\ud83d\udc6d Connected with someone",
-    "\u2600\ufe0f Got outside today",
-    "\ud83c\udf89 Small win today",
-    "\ud83d\udc95 Feeling loved",
+    "😊 Baby smiled at me",
+    "🙏 Feeling grateful",
+    "😴 Good sleep last night",
+    "💪 Feeling strong",
+    "👭 Connected with someone",
+    "☀️ Got outside today",
+    "🎉 Small win today",
+    "💕 Feeling loved",
   ];
 };
 
@@ -171,7 +171,9 @@ export default function MoodPage() {
       setSelectedTags([]);
       setNote("");
 
-      setTimeout(() => setSubmitted(false), 6000);
+      if (!data?.consecutiveLowMood) {
+        setTimeout(() => setSubmitted(false), 6000);
+      }
     } catch (err) {
       console.error("Failed to save mood check-in:", err);
       setError("We couldn't save your check-in just now. Please try again in a moment.");
@@ -196,16 +198,16 @@ export default function MoodPage() {
 
   const getNoteLabel = () => {
     if (selectedRating === null) return "Add a note (optional)";
-    if (selectedRating <= 2) return "Want to share what\u2019s weighing on you?";
+    if (selectedRating <= 2) return "Want to share what’s weighing on you?";
     if (selectedRating === 3) return "Anything on your mind today?";
-    if (selectedRating >= 4) return "What\u2019s making today a good day?";
+    if (selectedRating >= 4) return "What’s making today a good day?";
     return "Add a note (optional)";
   };
 
   const getPlaceholder = () => {
-    if (selectedRating !== null && selectedRating <= 2) return "I\u2019m feeling this way because...";
-    if (selectedRating !== null && selectedRating >= 4) return "Today I\u2019m thankful for...";
-    return "What\u2019s on your mind?";
+    if (selectedRating !== null && selectedRating <= 2) return "I’m feeling this way because...";
+    if (selectedRating !== null && selectedRating >= 4) return "Today I’m thankful for...";
+    return "What’s on your mind?";
   };
 
   const maxRating = 5;
@@ -232,7 +234,7 @@ export default function MoodPage() {
 
           {submitted ? (
             <div className="text-center py-8">
-              <span className="text-5xl">\ud83c\udf38</span>
+              <span className="text-5xl">🌸</span>
               <p className="mt-4 font-semibold text-warm-gray-800">Thank you for checking in!</p>
               <p className="text-sm text-warm-gray-500 mt-1">
                 Every check-in helps you understand your patterns.
@@ -241,13 +243,13 @@ export default function MoodPage() {
               {consecutiveLowMood && (
                 <div className="mt-6 text-left rounded-2xl border border-primary-100 bg-primary-50/60 p-5">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">\ud83e\udec2</span>
+                    <span className="text-2xl">🫂</span>
                     <div>
                       <p className="font-semibold text-warm-gray-800">
-                        We\u2019ve noticed a few tender days in a row.
+                        We’ve noticed a few tender days in a row.
                       </p>
                       <p className="text-sm text-warm-gray-600 mt-1">
-                        Would it help to talk it through? You don\u2019t have to carry this on your own.
+                        Would it help to talk it through? You don’t have to carry this on your own.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-2 mt-4">
                         <Link href="/mother/epds" className="flex-1">
@@ -327,7 +329,7 @@ export default function MoodPage() {
                 disabled={selectedRating === null || loading}
                 className="w-full"
               >
-                {loading ? "Saving\u2026" : "Submit Check-in"}
+                {loading ? "Saving…" : "Submit Check-in"}
               </Button>
             </>
           )}
