@@ -143,3 +143,21 @@
   - [ ] 18.6 Configure Netlify deployment — branch-based deploys (dev, staging, prod), environment variable management, deploy previews on PRs
   - [ ] 18.7 Set up monitoring — Netlify Analytics + AWS CloudWatch for DynamoDB throttling and Bedrock latency
   - [ ] 18.8 Perform end-to-end manual testing across all three roles (Mother, Counselor, Admin) on staging before production launch
+
+- [ ] 19. Progressive Web App (PWA) & Offline Capability [PLANNED ENHANCEMENT — implement after core functionality is complete]
+  - [ ] 19.1 Add Web App Manifest — app name, short name, description, theme/background colours (African-inspired palette), display mode "standalone", orientation, and full icon set (192x192, 512x512, maskable icons) using the ThrivingMama logo
+  - [ ] 19.2 Integrate service worker via @serwist/next (or next-pwa) — compatible with the existing Next.js static export (output: "export") configuration
+  - [ ] 19.3 Configure caching strategies — cache-first for static assets (JS, CSS, fonts, images), stale-while-revalidate for pages, network-first for API calls with offline fallback
+  - [ ] 19.4 Implement "Add to Home Screen" install prompt — custom install banner with warm, mother-friendly copy; detect installability and prompt at an appropriate moment (not on first load)
+  - [ ] 19.5 Enable offline reading — cache Family Portal resources, past chat messages, mood history, and EPDS score history so they are viewable without connectivity
+  - [ ] 19.6 Implement offline-first mood check-ins — queue check-ins submitted offline in IndexedDB, display "will sync when online" indicator, auto-sync to DynamoDB via Background Sync API when connection returns
+  - [ ] 19.7 Build offline fallback UI — friendly offline page/state for features that require connectivity (AI chat, login, booking), reassuring the mother rather than showing a browser error
+  - [ ] 19.8 Handle service worker updates gracefully — show a gentle "new version available, tap to refresh" prompt when a new deploy is detected
+  - [ ] 19.9 Verify PWA quality — run Lighthouse PWA audit, confirm installability, offline load, and performance on low-end Android devices and slow 3G network conditions
+  - [ ] 19.10 Test push notification support (future) — evaluate web push for daily mood check-in and EPDS reminders as an alternative/supplement to in-app notifications
+
+- [ ] 20. Personalise AI Chat with Mood & EPDS History [ENHANCEMENT]
+  - [ ] 20.1 In the chat Netlify Function, before invoking Bedrock, fetch the mother's recent mood check-ins (last 3-7 days) from thriving-mama-mood-checkins and her latest EPDS result from thriving-mama-epds-results
+  - [ ] 20.2 Inject a concise summary into the system prompt context (e.g. "Recent moods: Low, Low, Okay. Last EPDS: 14 on 2026-01-10") so Mama can reference her emotional trend naturally
+  - [ ] 20.3 Detect concerning trends (e.g. 3+ consecutive low moods, rising EPDS) and gently surface them in conversation without alarming her
+  - [ ] 20.4 Keep the data fetch lightweight (single query each) to minimise latency and cost; gracefully skip if no data exists

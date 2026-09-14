@@ -1,56 +1,183 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { mockMoodHistory, moodLabels } from "@/lib/mock-data/mood";
+import { useAuth } from "@/lib/auth/AuthContext";
+
+// A normalized entry shape the UI renders. We accept both the API item
+// shape ({ timestamp, rating, note }) and the mock shape ({ date, rating,
+// note }) and coerce everything into this.
+interface DisplayMoodEntry {
+  rating: number;
+  date: string;
+  note?: string | null;
+}
+
+// The raw item shape returned by GET /.netlify/functions/mood.
+interface ApiMoodItem {
+  userId: string;
+  timestamp: string;
+  rating: number;
+  note: string | null;
+  tags: string[];
+  createdAt: string;
+}
 
 const getQuickTags = (rating: number | null): string[] => {
   if (rating === null) return [];
   if (rating <= 2) {
     return [
-      "😴 Sleep deprivation",
-      "😰 Overwhelmed",
-      "😢 Crying a lot",
-      "🫂 Feeling alone",
-      "😤 Irritable",
-      "🧠 Can't think straight",
-      "💑 Partner issues",
-      "🏠 Home stress",
+      "\ud83d\ude34 Sleep deprivation",
+      "\ud83d\ude30 Overwhelmed",
+      "\ud83d\ude22 Crying a lot",
+      "\ud83e\udec2 Feeling alone",
+      "\ud83d\ude24 Irritable",
+      "\ud83e\udde0 Can't think straight",
+      "\ud83d\udc91 Partner issues",
+      "\ud83c\udfe0 Home stress",
     ];
   }
   if (rating === 3) {
     return [
-      "😴 Tired but okay",
-      "🫂 Could use company",
-      "💪 Managing",
-      "🌤️ Some good moments",
-      "😐 Just getting through",
-      "💑 Relationship stuff",
+      "\ud83d\ude34 Tired but okay",
+      "\ud83e\udec2 Could use company",
+      "\ud83d\udcaa Managing",
+      "\ud83c\udf24\ufe0f Some good moments",
+      "\ud83d\ude10 Just getting through",
+      "\ud83d\udc91 Relationship stuff",
     ];
   }
   return [
-    "😊 Baby smiled at me",
-    "🙏 Feeling grateful",
-    "😴 Good sleep last night",
-    "💪 Feeling strong",
-    "👭 Connected with someone",
-    "☀️ Got outside today",
-    "🎉 Small win today",
-    "💕 Feeling loved",
+    "\ud83d\ude0a Baby smiled at me",
+    "\ud83d\ude4f Feeling grateful",
+    "\ud83d\ude34 Good sleep last night",
+    "\ud83d\udcaa Feeling strong",
+    "\ud83d\udc6d Connected with someone",
+    "\u2600\ufe0f Got outside today",
+    "\ud83c\udf89 Small win today",
+    "\ud83d\udc95 Feeling loved",
   ];
 };
 
+// Format an ISO timestamp (or an existing date string) into a YYYY-MM-DD
+// display value. Falls back to the raw value if it can't be parsed.
+const toDisplayDate = (value: string): string => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toISOString().slice(0, 10);
+};
+
+// Normalize either an API item or a mock entry into DisplayMoodEntry.
+const normalizeEntry = (entry: ApiMoodItem | { date: string; rating: number; note?: string }): DisplayMoodEntry => {
+  const rawDate = "timestamp" in entry ? entry.timestamp : entry.date;
+  return {
+    rating: entry.rating,
+    date: toDisplayDate(rawDate),
+    note: entry.note ?? undefined,
+  };
+};
+
+const MOOD_ENDPOINT = "/.netlify/functions/mood";
+
+// Fallback data (newest-first) so the page still looks good in dev when the
+// API is unavailable or returns nothing.
+const fallbackHistory: DisplayMoodEntry[] = mockMoodHistory.map(normalizeEntry);
+
 export default function MoodPage() {
+  const { user } = useAuth();
+
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
+  const [loading, setLoading] = useState(false);
+  const [moodHistory, setMoodHistory] = useState<DisplayMoodEntry[]>(fallbackHistory);
+  const [consecutiveLowMood, setConsecutiveLowMood] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch the last 30 days of mood history for the current user. Newest-first
+  // from the API. Falls back to mock data on failure or empty response.
+  const fetchMoodHistory = useCallback(async () => {
+    if (!user?.userId) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${MOOD_ENDPOINT}?userId=${encodeURIComponent(user.userId)}&days=30`
+      );
+      if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+
+      const data = await res.json();
+      const checkins: ApiMoodItem[] = Array.isArray(data?.checkins) ? data.checkins : [];
+
+      if (checkins.length > 0) {
+        setMoodHistory(checkins.map(normalizeEntry));
+      } else {
+        // Keep mock data as a fallback so the page still looks good in dev.
+        setMoodHistory(fallbackHistory);
+      }
+    } catch (err) {
+      console.error("Failed to load mood history:", err);
+      setMoodHistory(fallbackHistory);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userId]);
+
+  useEffect(() => {
+    fetchMoodHistory();
+  }, [fetchMoodHistory]);
+
+  const handleSubmit = async () => {
     if (selectedRating === null) return;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+
+    setError(null);
+
+    if (!user?.userId) {
+      setError("You need to be signed in to save a check-in.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(MOOD_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.userId,
+          rating: selectedRating,
+          note,
+          tags: selectedTags,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+
+      const data = await res.json();
+
+      setConsecutiveLowMood(Boolean(data?.consecutiveLowMood));
+      setSubmitted(true);
+
+      // Refresh history so the chart and recent entries reflect the new check-in.
+      await fetchMoodHistory();
+
+      // Reset the composer for next time.
+      setSelectedRating(null);
+      setSelectedTags([]);
+      setNote("");
+
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err) {
+      console.error("Failed to save mood check-in:", err);
+      setError("We couldn't save your check-in just now. Please try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTagToggle = (tag: string) => {
@@ -82,7 +209,10 @@ export default function MoodPage() {
   };
 
   const maxRating = 5;
-  const chartData = mockMoodHistory.slice(0, 30).reverse();
+  // History is newest-first; the chart reads oldest -> newest (left -> right).
+  const chartData = [...moodHistory].slice(0, 30).reverse();
+  // Recent entries stay newest-first.
+  const recentEntries = moodHistory.slice(0, 7);
 
   return (
     <div>
@@ -102,11 +232,37 @@ export default function MoodPage() {
 
           {submitted ? (
             <div className="text-center py-8">
-              <span className="text-5xl">🌸</span>
+              <span className="text-5xl">\ud83c\udf38</span>
               <p className="mt-4 font-semibold text-warm-gray-800">Thank you for checking in!</p>
               <p className="text-sm text-warm-gray-500 mt-1">
                 Every check-in helps you understand your patterns.
               </p>
+
+              {consecutiveLowMood && (
+                <div className="mt-6 text-left rounded-2xl border border-primary-100 bg-primary-50/60 p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">\ud83e\udec2</span>
+                    <div>
+                      <p className="font-semibold text-warm-gray-800">
+                        We\u2019ve noticed a few tender days in a row.
+                      </p>
+                      <p className="text-sm text-warm-gray-600 mt-1">
+                        Would it help to talk it through? You don\u2019t have to carry this on your own.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                        <Link href="/mother/epds" className="flex-1">
+                          <Button variant="secondary" className="w-full">
+                            Take the EPDS check
+                          </Button>
+                        </Link>
+                        <Link href="/mother/chat" className="flex-1">
+                          <Button className="w-full">Talk to Mama AI</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -160,12 +316,18 @@ export default function MoodPage() {
                 />
               </div>
 
+              {error && (
+                <p className="mb-3 text-sm text-red-600" role="alert">
+                  {error}
+                </p>
+              )}
+
               <Button
                 onClick={handleSubmit}
-                disabled={selectedRating === null}
+                disabled={selectedRating === null || loading}
                 className="w-full"
               >
-                Submit Check-in
+                {loading ? "Saving\u2026" : "Submit Check-in"}
               </Button>
             </>
           )}
@@ -225,8 +387,8 @@ export default function MoodPage() {
           Recent Entries
         </h2>
         <div className="space-y-3">
-          {mockMoodHistory.slice(0, 7).map((entry) => (
-            <div key={entry.date} className="flex items-center gap-4 py-2 border-b border-warm-gray-50 last:border-0">
+          {recentEntries.map((entry, index) => (
+            <div key={`${entry.date}-${index}`} className="flex items-center gap-4 py-2 border-b border-warm-gray-50 last:border-0">
               <span className="text-2xl">{moodLabels[entry.rating]?.emoji}</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-warm-gray-700">{entry.date}</p>
