@@ -1,15 +1,140 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { epdsQuestions, mockEPDSHistory } from "@/lib/mock-data/epds";
 
-export default function EPDSPage() {
+const EPDS_ENDPOINT = "/.netlify/functions/epds";
+
+type RiskLevel = "low" | "moderate" | "high";
+
+// Shape returned by the EPDS API (GET history items).
+interface EPDSApiResult {
+  userId: string;
+  timestamp: string;
+  score: number;
+  answers: number[];
+  riskLevel: RiskLevel;
+  selfHarmScore: number;
+  createdAt: string;
+}
+
+// Normalized shape used by the chart + history list. Handles both the API
+// result shape (timestamp) and the mock shape (id/date).
+interface HistoryEntry {
+  key: string;
+  score: number;
+  date: string;
+}
+
+// Shape stored from the POST response.
+interface SubmitResult {
+  score: number;
+  riskLevel: RiskLevel;
+  recommendBooking: boolean;
+  crisisEscalation: boolean;
+  selfHarmFlagged: boolean;
+}
+
+function normalizeApiResults(items: EPDSApiResult[]): HistoryEntry[] {
+  return items.map((item, index) => ({
+    key: `${item.userId}-${item.timestamp}-${index}`,
+    score: item.score,
+    // ISO timestamp -> YYYY-MM-DD
+    date: (item.timestamp || item.createdAt || "").slice(0, 10),
+  }));
+}
+
+function normalizeMockResults(): HistoryEntry[] {
+  return mockEPDSHistory.map((item) => ({
+    key: item.id,
+    score: item.score,
+    date: item.date,
+  }));
+}
+
+function getScoreMessage(score: number) {
+  if (score < 10)
+    return {
+      level: "Low risk",
+      color: "text-accent-600",
+      bg: "bg-accent-50",
+      message: "Your score suggests you're coping well. Keep up the good work!",
+    };
+  if (score < 13)
+    return {
+      level: "Moderate risk",
+      color: "text-sunshine-600",
+      bg: "bg-sunshine-50",
+      message:
+        "Your score suggests you may benefit from speaking with a counselor. Consider booking a session.",
+    };
+  return {
+    level: "High risk",
+    color: "text-red-600",
+    bg: "bg-red-50",
+    message:
+      "Your score suggests you need support. Please speak with a counselor as soon as possible.",
+  };
+}
+
+function EPDSContent() {
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const fromOnboarding = searchParams.get("source") === "onboarding";
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(10).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    new Array(10).fill(null)
+  );
   const [showResult, setShowResult] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
+
+  const [epdsHistory, setEpdsHistory] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
+
+  const userId = user?.userId;
+
+  const loadHistory = useCallback(async () => {
+    if (!userId) {
+      // No authenticated user yet - fall back to mock data for dev.
+      setEpdsHistory(normalizeMockResults());
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${EPDS_ENDPOINT}?userId=${encodeURIComponent(userId)}`
+      );
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      const data = (await res.json()) as { results?: EPDSApiResult[] };
+      const results = data.results ?? [];
+      if (results.length === 0) {
+        // Empty history - use the mock data as a dev fallback.
+        setEpdsHistory(normalizeMockResults());
+      } else {
+        setEpdsHistory(normalizeApiResults(results));
+      }
+    } catch (err) {
+      console.error("Failed to load EPDS history:", err);
+      setEpdsHistory(normalizeMockResults());
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const handleAnswer = (value: number) => {
     const newAnswers = [...answers];
@@ -21,66 +146,185 @@ export default function EPDSPage() {
     }
   };
 
-  const handleSubmit = () => {
-    setShowResult(true);
-    setShowHistory(false);
+  const handleSubmit = async () => {
+    if (submitting) return;
+
+    const numericAnswers = answers.map((a) => a ?? 0);
+
+    // Optimistic client-side score in case the API is unavailable.
+    const clientScore = numericAnswers.reduce((sum, val) => sum + val, 0);
+    const clientSelfHarm = numericAnswers[9] >= 1;
+
+    setSubmitting(true);
+    try {
+      if (!userId) {
+        throw new Error("No authenticated user");
+      }
+      const res = await fetch(EPDS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, answers: numericAnswers }),
+      });
+      if (!res.ok) {
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      const data = (await res.json()) as SubmitResult & { success: boolean };
+      setSubmitResult({
+        score: data.score,
+        riskLevel: data.riskLevel,
+        recommendBooking: data.recommendBooking,
+        crisisEscalation: data.crisisEscalation,
+        selfHarmFlagged: data.selfHarmFlagged,
+      });
+      // Refresh history so the new result shows up.
+      await loadHistory();
+    } catch (err) {
+      console.error("Failed to submit EPDS screening:", err);
+      // Fall back to a client-side computed result so the user still sees
+      // meaningful guidance.
+      const riskLevel: RiskLevel =
+        clientScore >= 13 ? "high" : clientScore >= 10 ? "moderate" : "low";
+      setSubmitResult({
+        score: clientScore,
+        riskLevel,
+        recommendBooking: clientScore >= 10,
+        crisisEscalation: clientScore >= 13 || clientSelfHarm,
+        selfHarmFlagged: clientSelfHarm,
+      });
+    } finally {
+      setSubmitting(false);
+      setShowResult(true);
+      setShowHistory(false);
+    }
   };
 
-  const totalScore = answers.reduce<number>((sum, val) => sum + (val ?? 0), 0);
+  const resetScreening = () => {
+    setShowResult(false);
+    setShowHistory(true);
+    setCurrentQuestion(0);
+    setAnswers(new Array(10).fill(null));
+    setSubmitResult(null);
+  };
+
   const allAnswered = answers.every((a) => a !== null);
 
-  const getScoreMessage = (score: number) => {
-    if (score < 10) return { level: "Low risk", color: "text-accent-600", bg: "bg-accent-50", message: "Your score suggests you're coping well. Keep up the good work!" };
-    if (score < 13) return { level: "Moderate risk", color: "text-sunshine-600", bg: "bg-sunshine-50", message: "Your score suggests you may benefit from speaking with a counselor. Consider booking a session." };
-    return { level: "High risk", color: "text-red-600", bg: "bg-red-50", message: "Your score suggests you need support. Please speak with a counselor as soon as possible." };
-  };
-
-  if (showResult) {
-    const result = getScoreMessage(totalScore);
+  // ------------------------------------------------------------------
+  // RESULT VIEW
+  // ------------------------------------------------------------------
+  if (showResult && submitResult) {
+    const score = submitResult.score;
+    const result = getScoreMessage(score);
     return (
       <div>
         <div className="mb-8">
-          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">EPDS Results</h1>
+          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">
+            EPDS Results
+          </h1>
         </div>
         <Card className={`max-w-lg mx-auto ${result.bg}`}>
           <div className="text-center">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-sm">
-              <span className={`text-3xl font-bold ${result.color}`}>{totalScore}</span>
+              <span className={`text-3xl font-bold ${result.color}`}>
+                {score}
+              </span>
             </div>
             <p className="text-sm text-warm-gray-500 mb-2">out of 30</p>
-            <h2 className={`font-heading text-xl font-bold ${result.color} mb-3`}>{result.level}</h2>
+            <h2 className={`font-heading text-xl font-bold ${result.color} mb-3`}>
+              {result.level}
+            </h2>
             <p className="text-warm-gray-600 mb-6">{result.message}</p>
-            {totalScore >= 10 && (
-              <Button variant="primary" onClick={() => window.location.href = "/mother/booking"}>
+
+            {submitResult.crisisEscalation ? (
+              <div className="mb-6 text-left rounded-2xl border-2 border-red-200 bg-white p-5">
+                <h3 className="font-heading text-lg font-bold text-red-600 mb-2">
+                  You don't have to face this alone
+                </h3>
+                <p className="text-sm text-warm-gray-600 mb-4">
+                  {submitResult.selfHarmFlagged
+                    ? "You mentioned thoughts of harming yourself. Please reach out right now - support is available 24/7."
+                    : "Your responses suggest you're going through a very hard time. Please reach out - support is available 24/7."}
+                </p>
+                <ul className="space-y-2 text-sm text-warm-gray-700 mb-5">
+                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+                    <span className="font-medium">Emergency</span>
+                    <a href="tel:112" className="font-bold text-red-600">
+                      Call 112
+                    </a>
+                  </li>
+                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+                    <span className="font-medium">Suicide &amp; Crisis Lifeline</span>
+                    <a href="tel:988" className="font-bold text-red-600">
+                      Call 988
+                    </a>
+                  </li>
+                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+                    <span className="font-medium">Crisis Text Line</span>
+                    <a href="sms:741741?&body=HOME" className="font-bold text-red-600">
+                      Text HOME to 741741
+                    </a>
+                  </li>
+                </ul>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => (window.location.href = "/mother/chat")}
+                  >
+                    Talk to Mama AI now
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => (window.location.href = "/mother/booking")}
+                  >
+                    Book a Counselor
+                  </Button>
+                </div>
+              </div>
+            ) : submitResult.recommendBooking ? (
+              <Button
+                variant="primary"
+                onClick={() => (window.location.href = "/mother/booking")}
+              >
                 Book a Counselor Session
               </Button>
+            ) : (
+              <p className="text-sm text-accent-600 font-medium mb-2">
+                Keep nurturing yourself - you're doing great.
+              </p>
             )}
-            <Button
-              variant="ghost"
-              className="mt-3"
-              onClick={() => {
-                setShowResult(false);
-                setShowHistory(true);
-                setCurrentQuestion(0);
-                setAnswers(new Array(10).fill(null));
-              }}
-            >
-              Back to History
-            </Button>
+
+            {fromOnboarding ? (
+              <Button
+                variant="ghost"
+                className="mt-3"
+                onClick={() => (window.location.href = "/mother")}
+              >
+                Continue to my dashboard
+              </Button>
+            ) : (
+              <Button variant="ghost" className="mt-3" onClick={resetScreening}>
+                Back to History
+              </Button>
+            )}
           </div>
         </Card>
       </div>
     );
   }
 
+  // ------------------------------------------------------------------
+  // QUESTION VIEW
+  // ------------------------------------------------------------------
   if (!showHistory) {
     const question = epdsQuestions[currentQuestion];
     return (
       <div>
         <div className="mb-8">
-          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">EPDS Screening</h1>
+          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">
+            EPDS Screening
+          </h1>
           <p className="text-sm text-warm-gray-500">
-            Edinburgh Postnatal Depression Scale - Question {currentQuestion + 1} of 10
+            Edinburgh Postnatal Depression Scale - Question{" "}
+            {currentQuestion + 1} of 10
           </p>
         </div>
 
@@ -107,7 +351,9 @@ export default function EPDSPage() {
                     : "border-warm-gray-100 hover:border-warm-gray-200"
                 }`}
               >
-                <span className="text-sm text-warm-gray-700">{option.label}</span>
+                <span className="text-sm text-warm-gray-700">
+                  {option.label}
+                </span>
               </button>
             ))}
           </div>
@@ -115,14 +361,16 @@ export default function EPDSPage() {
           <div className="flex justify-between mt-6 pt-4 border-t border-warm-gray-100">
             <Button
               variant="ghost"
-              onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+              onClick={() =>
+                setCurrentQuestion(Math.max(0, currentQuestion - 1))
+              }
               disabled={currentQuestion === 0}
             >
               Previous
             </Button>
             {currentQuestion === 9 && allAnswered && (
-              <Button onClick={handleSubmit}>
-                Submit Screening
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit Screening"}
               </Button>
             )}
           </div>
@@ -131,66 +379,122 @@ export default function EPDSPage() {
     );
   }
 
+  // ------------------------------------------------------------------
+  // HISTORY VIEW (default)
+  // ------------------------------------------------------------------
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">EPDS Screening</h1>
+          <h1 className="font-heading text-2xl font-bold text-warm-gray-900">
+            EPDS Screening
+          </h1>
           <p className="text-sm text-warm-gray-500">
-            Edinburgh Postnatal Depression Scale - track your mental health over time
+            Edinburgh Postnatal Depression Scale - track your mental health over
+            time
           </p>
         </div>
-        <Button onClick={() => setShowHistory(false)}>
-          Take New Screening
-        </Button>
+        <Button onClick={() => setShowHistory(false)}>Take New Screening</Button>
       </div>
 
       {/* Score History Chart */}
       <Card className="mb-6">
-        <h2 className="font-heading text-lg font-bold text-warm-gray-800 mb-4">Score History</h2>
-        <div className="flex items-end gap-4 h-48">
-          {mockEPDSHistory.slice().reverse().map((result) => {
-            const height = (result.score / 30) * 100;
-            const color = result.score >= 13 ? "bg-red-400" : result.score >= 10 ? "bg-sunshine-400" : "bg-accent-400";
-            return (
-              <div key={result.id} className="flex-1 flex flex-col items-center justify-end h-full">
-                <span className="text-xs font-bold text-warm-gray-700 mb-1">{result.score}</span>
-                <div
-                  className={`w-full rounded-t-lg ${color} transition-all`}
-                  style={{ height: `${height}%` }}
-                />
-                <span className="text-xs text-warm-gray-500 mt-2">{result.date.slice(5)}</span>
-              </div>
-            );
-          })}
-        </div>
+        <h2 className="font-heading text-lg font-bold text-warm-gray-800 mb-4">
+          Score History
+        </h2>
+        {loading ? (
+          <p className="text-sm text-warm-gray-500">Loading your history...</p>
+        ) : (
+          <div className="flex items-end gap-4 h-48">
+            {epdsHistory
+              .slice()
+              .reverse()
+              .map((result) => {
+                const height = (result.score / 30) * 100;
+                const color =
+                  result.score >= 13
+                    ? "bg-red-400"
+                    : result.score >= 10
+                    ? "bg-sunshine-400"
+                    : "bg-accent-400";
+                return (
+                  <div
+                    key={result.key}
+                    className="flex-1 flex flex-col items-center justify-end h-full"
+                  >
+                    <span className="text-xs font-bold text-warm-gray-700 mb-1">
+                      {result.score}
+                    </span>
+                    <div
+                      className={`w-full rounded-t-lg ${color} transition-all`}
+                      style={{ height: `${height}%` }}
+                    />
+                    <span className="text-xs text-warm-gray-500 mt-2">
+                      {result.date.slice(5)}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        )}
         <div className="flex gap-4 mt-4 pt-4 border-t border-warm-gray-100 text-xs">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-accent-400" /> Low risk (&lt;10)</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-sunshine-400" /> Moderate (10-12)</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400" /> High risk (13+)</span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-accent-400" /> Low risk (&lt;10)
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-sunshine-400" /> Moderate (10-12)
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-red-400" /> High risk (13+)
+          </span>
         </div>
       </Card>
 
       {/* History List */}
       <Card>
-        <h2 className="font-heading text-lg font-bold text-warm-gray-800 mb-4">Past Results</h2>
-        <div className="space-y-3">
-          {mockEPDSHistory.map((result) => {
-            const scoreInfo = getScoreMessage(result.score);
-            return (
-              <div key={result.id} className="flex items-center justify-between py-3 border-b border-warm-gray-50 last:border-0">
-                <div>
-                  <p className="font-medium text-warm-gray-800">{result.date}</p>
-                  <p className={`text-sm font-semibold ${scoreInfo.color}`}>{scoreInfo.level}</p>
+        <h2 className="font-heading text-lg font-bold text-warm-gray-800 mb-4">
+          Past Results
+        </h2>
+        {loading ? (
+          <p className="text-sm text-warm-gray-500">Loading your history...</p>
+        ) : (
+          <div className="space-y-3">
+            {epdsHistory.map((result) => {
+              const scoreInfo = getScoreMessage(result.score);
+              return (
+                <div
+                  key={result.key}
+                  className="flex items-center justify-between py-3 border-b border-warm-gray-50 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium text-warm-gray-800">
+                      {result.date}
+                    </p>
+                    <p className={`text-sm font-semibold ${scoreInfo.color}`}>
+                      {scoreInfo.level}
+                    </p>
+                  </div>
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${scoreInfo.bg}`}
+                  >
+                    <span className={`font-bold ${scoreInfo.color}`}>
+                      {result.score}
+                    </span>
+                  </div>
                 </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${scoreInfo.bg}`}>
-                  <span className={`font-bold ${scoreInfo.color}`}>{result.score}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
     </div>
+  );
+}
+
+export default function EPDSPage() {
+  return (
+    <Suspense fallback={null}>
+      <EPDSContent />
+    </Suspense>
   );
 }
