@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import HotlineList from "@/components/crisis/HotlineList";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { epdsQuestions, mockEPDSHistory } from "@/lib/mock-data/epds";
 
@@ -214,6 +215,7 @@ function EPDSContent() {
   if (showResult && submitResult) {
     const score = submitResult.score;
     const result = getScoreMessage(score);
+    const countryCode = (user as { countryCode?: string })?.countryCode;
     return (
       <div>
         <div className="mb-8">
@@ -236,46 +238,20 @@ function EPDSContent() {
 
             {submitResult.crisisEscalation ? (
               <div className="mb-6 text-left rounded-2xl border-2 border-red-200 bg-white p-5">
-                <h3 className="font-heading text-lg font-bold text-red-600 mb-2">
-                  You don't have to face this alone
-                </h3>
-                <p className="text-sm text-warm-gray-600 mb-4">
-                  {submitResult.selfHarmFlagged
-                    ? "You mentioned thoughts of harming yourself. Please reach out right now - support is available 24/7."
-                    : "Your responses suggest you're going through a very hard time. Please reach out - support is available 24/7."}
-                </p>
-                <ul className="space-y-2 text-sm text-warm-gray-700 mb-5">
-                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
-                    <span className="font-medium">Emergency</span>
-                    <a href="tel:112" className="font-bold text-red-600">
-                      Call 112
-                    </a>
-                  </li>
-                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
-                    <span className="font-medium">Suicide &amp; Crisis Lifeline</span>
-                    <a href="tel:988" className="font-bold text-red-600">
-                      Call 988
-                    </a>
-                  </li>
-                  <li className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
-                    <span className="font-medium">Crisis Text Line</span>
-                    <a href="sms:741741?&body=HOME" className="font-bold text-red-600">
-                      Text HOME to 741741
-                    </a>
-                  </li>
-                </ul>
-                <div className="flex flex-col gap-3">
+                <HotlineList
+                  countryCode={countryCode}
+                  introMessage={
+                    submitResult.score >= 13
+                      ? "Your score indicates you need support right now. Please contact one of these services."
+                      : "Your score suggests you would benefit from additional support. Please reach out."
+                  }
+                />
+                <div className="flex flex-col gap-3 mt-5">
                   <Button
                     variant="primary"
                     onClick={() => (window.location.href = "/mother/chat")}
                   >
                     Talk to Mama AI now
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => (window.location.href = "/mother/booking")}
-                  >
-                    Book a Counselor
                   </Button>
                 </div>
               </div>

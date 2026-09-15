@@ -46,6 +46,7 @@ export function useOnboarding() {
           firstBaby: currentState.firstBaby,
           challenges: currentState.challenges,
           supportNetwork: currentState.supportNetwork ? [currentState.supportNetwork] : [],
+          countryCode: currentState.countryCode,
           currentOnboardingStep: currentState.currentStep,
           isOnboardingComplete: currentState.isOnboardingComplete,
         }),

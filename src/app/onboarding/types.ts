@@ -32,6 +32,16 @@ export const SUPPORT_OPTIONS = [
  { id: "complicated" as SupportNetwork, emoji: "🌀", label: "It's complicated" },
 ] as const;
 
+export const COUNTRIES = [
+  { code: "CM", name: "Cameroon" },
+  { code: "NG", name: "Nigeria" },
+  { code: "GH", name: "Ghana" },
+  { code: "ZA", name: "South Africa" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "FR", name: "France" },
+  { code: "XX", name: "Other" },
+] as const;
+
 export interface OnboardingState {
  currentStep: number;
  initialWellbeingStatus: WellbeingStatus | null;
@@ -40,6 +50,7 @@ export interface OnboardingState {
  firstBaby: boolean | null;
  challenges: string[];
  supportNetwork: SupportNetwork | null;
+ countryCode: string | null;
  consentGiven: boolean;
  epdsChoice: "started" | "skipped" | null;
  isOnboardingComplete: boolean;
@@ -53,6 +64,7 @@ export const INITIAL_STATE: OnboardingState = {
  firstBaby: null,
  challenges: [],
  supportNetwork: null,
+ countryCode: null,
  consentGiven: false,
  epdsChoice: null,
  isOnboardingComplete: false,

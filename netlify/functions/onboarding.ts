@@ -36,6 +36,7 @@ interface OnboardingRequest {
   firstBaby?: boolean;
   challenges?: string[];
   supportNetwork?: string[];
+  countryCode?: string;
   currentOnboardingStep?: number;
   isOnboardingComplete?: boolean;
 }
@@ -100,6 +101,7 @@ const handler: Handler = async (
         "firstBaby = :firstBaby, " +
         "challenges = :challenges, " +
         "supportNetwork = :supportNetwork, " +
+        "countryCode = :countryCode, " +
         "isOnboardingComplete = :onboardingComplete, " +
         "currentOnboardingStep = :step, " +
         "updatedAt = :updatedAt",
@@ -110,6 +112,7 @@ const handler: Handler = async (
         ":firstBaby": data.firstBaby ?? null,
         ":challenges": data.challenges || [],
         ":supportNetwork": data.supportNetwork || [],
+        ":countryCode": data.countryCode || null,
         ":onboardingComplete": data.isOnboardingComplete ?? false,
         ":step": data.currentOnboardingStep ?? 0,
         ":updatedAt": now,

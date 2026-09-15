@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { StepProps, BabyStage, SupportNetwork, BABY_STAGES, CHALLENGES, SUPPORT_OPTIONS } from "../types";
+import { StepProps, BabyStage, SupportNetwork, BABY_STAGES, CHALLENGES, SUPPORT_OPTIONS, COUNTRIES } from "../types";
 
 export default function Step3({ state, onNext, onBack, updateState }: StepProps) {
  const [subStep, setSubStep] = useState(0);
@@ -24,6 +24,11 @@ export default function Step3({ state, onNext, onBack, updateState }: StepProps)
 
  const handleSupport = (network: SupportNetwork) => {
  updateState({ supportNetwork: network });
+ setSubStep(4);
+ };
+
+ const handleCountry = (code: string) => {
+ updateState({ countryCode: code });
  onNext();
  };
 
@@ -142,6 +147,28 @@ export default function Step3({ state, onNext, onBack, updateState }: StepProps)
  <span className="text-2xl group-hover:scale-110 transition-transform">{option.emoji}</span>
  <span className="font-medium text-warm-gray-800">{option.label}</span>
  </div>
+ </button>
+ ))}
+ </div>
+ </div>
+ )}
+ {subStep === 4 && (
+ <div className="w-full">
+ <h2 className="font-heading text-2xl font-bold text-warm-gray-900 mb-2 text-center">
+ Which country are you in?
+ </h2>
+ <p className="text-sm text-warm-gray-500 mb-6 text-center">
+ This helps us show you the right local support.
+ </p>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ {COUNTRIES.map((country) => (
+ <button
+ key={country.code}
+ onClick={() => handleCountry(country.code)}
+ className={`group p-5 rounded-2xl border-2 text-left transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-100 ${state.countryCode === country.code ? "border-primary-400 bg-primary-50" : "border-warm-gray-100 bg-white hover:border-primary-200 hover:shadow-sm"}`}
+ aria-label={country.name}
+ >
+ <span className="font-medium text-warm-gray-800">{country.name}</span>
  </button>
  ))}
  </div>
