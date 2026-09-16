@@ -6,6 +6,7 @@ import { useState } from "react";
 import { UserRole } from "@/lib/mock-data/users";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 interface NavbarProps {
   userRole?: UserRole;
@@ -14,7 +15,9 @@ interface NavbarProps {
 
 export default function Navbar({ userRole, userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const { logout } = useAuth();
 
   const getNavLinks = () => {
     if (!userRole) {
@@ -83,10 +86,47 @@ export default function Navbar({ userRole, userName }: NavbarProps) {
           {/* User info + language switcher + mobile toggle */}
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            {userName && (
-              <span className="hidden sm:block text-sm text-warm-gray-500">
-                {t.common.greeting}, <span className="font-semibold text-warm-gray-700">{userName.split(" ")[0]}</span>
-              </span>
+            {userRole && (
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-warm-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white text-sm font-semibold">
+                    {(userName || "M").charAt(0).toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-warm-gray-700">
+                    {userName ? userName.split(" ")[0] : ""}
+                  </span>
+                  <svg className={`w-4 h-4 text-warm-gray-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {userMenuOpen && (
+                  <>
+                    {/* Backdrop to close on outside click */}
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-warm-gray-100 bg-white shadow-lg z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-warm-gray-100">
+                        <p className="text-xs text-warm-gray-400">{t.common.greeting}</p>
+                        <p className="text-sm font-semibold text-warm-gray-800 truncate">{userName || "Mama"}</p>
+                      </div>
+                      <button
+                        onClick={() => { setUserMenuOpen(false); logout(); }}
+                        className="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Log out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -118,6 +158,14 @@ export default function Navbar({ userRole, userName }: NavbarProps) {
                 {link.label}
               </Link>
             ))}
+            {userRole && (
+              <button
+                onClick={() => { setMobileMenuOpen(false); logout(); }}
+                className="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 mt-2 border-t border-warm-gray-100 pt-3"
+              >
+                Log out
+              </button>
+            )}
           </div>
         )}
       </div>
